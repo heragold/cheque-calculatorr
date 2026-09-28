@@ -1,0 +1,377 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>جدول محاسبه تنزیل چک</title>
+<link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#0F2E2B;
+  --bg-panel:#123833;
+  --ink:#F4EFE6;
+  --ink-dim:#B9C9C4;
+  --line:#2A5750;
+  --gold:#C9A24B;
+  --row-alt:#153E38;
+  --danger:#D9765C;
+  --radius:10px;
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px);
+  padding-bottom:env(safe-area-inset-bottom,0px);
+}
+@media (prefers-color-scheme: light){
+  :root:not([data-theme="dark"]){
+    --bg:#F3EFE4;
+    --bg-panel:#FFFFFF;
+    --ink:#16241F;
+    --ink-dim:#5A6B63;
+    --line:#DAD2BE;
+    --row-alt:#F7F3E8;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#0F2E2B; --bg-panel:#123833; --ink:#F4EFE6; --ink-dim:#B9C9C4; --line:#2A5750; --row-alt:#153E38;
+}
+html{scroll-padding-top:env(safe-area-inset-top,0px); height:100%;}
+*{box-sizing:border-box;}
+body{
+  margin:0; min-height:100%;
+  background:var(--bg); color:var(--ink);
+  font-family:"Vazirmatn",Tahoma,sans-serif;
+  padding:28px 16px 60px;
+}
+.wrap{max-width:1180px;margin:0 auto;}
+h1{
+  font-size:22px; font-weight:700; margin:0 0 4px;
+  letter-spacing:.2px;
+}
+.sub{color:var(--ink-dim); font-size:14px; margin:0 0 22px; line-height:1.8;}
+.card{
+  background:var(--bg-panel);
+  border:1px solid var(--line);
+  border-radius:var(--radius);
+  padding:6px;
+  overflow-x:auto;
+}
+table{
+  border-collapse:collapse; width:100%; min-width:900px;
+}
+th,td{
+  border:1px solid var(--line);
+  padding:10px 8px;
+  text-align:center;
+  font-size:13px;
+  white-space:nowrap;
+}
+thead th{
+  background:transparent;
+  color:var(--gold);
+  font-weight:600;
+  font-size:12.5px;
+  line-height:1.5;
+}
+tbody tr:nth-child(even){background:var(--row-alt);}
+.rownum{color:var(--ink-dim); font-weight:600; width:34px;}
+input.amt-input{
+  width:130px; padding:7px 6px;
+  background:transparent; color:var(--ink);
+  border:1px solid var(--line); border-radius:6px;
+  font-family:inherit; font-size:13px; text-align:center;
+  font-variant-numeric:tabular-nums;
+}
+input.amt-input:focus{outline:2px solid var(--gold); outline-offset:1px;}
+.date-group{display:flex; gap:4px; justify-content:center;}
+.date-group select{
+  background:transparent; color:var(--ink);
+  border:1px solid var(--line); border-radius:6px;
+  padding:6px 3px; font-family:inherit; font-size:12.5px;
+}
+.date-group select:focus{outline:2px solid var(--gold); outline-offset:1px;}
+.readout{color:var(--gold); font-weight:600; font-variant-numeric:tabular-nums;}
+.readout.small{font-size:12.5px; color:var(--ink);}
+
+.summary{
+  margin-top:22px; display:flex; flex-wrap:wrap; gap:12px;
+}
+.sumbox{
+  background:var(--bg-panel); border:1px solid var(--line); border-radius:var(--radius);
+  padding:16px 18px; min-width:220px; flex:1;
+}
+.sumbox .label{color:var(--ink-dim); font-size:12.5px; margin-bottom:6px;}
+.sumbox .value{font-size:20px; font-weight:700; font-variant-numeric:tabular-nums;}
+.sumbox.final{border-color:var(--gold);}
+.sumbox.final .value{color:var(--gold);}
+.hint{color:var(--ink-dim); font-size:12px; margin-top:14px; line-height:1.9;}
+.rate-box{
+  display:flex; align-items:center; gap:12px; flex-wrap:wrap;
+  margin-bottom:16px; padding:12px 16px;
+  background:var(--bg-panel); border:1px solid var(--line); border-radius:var(--radius);
+}
+.rate-box label{font-size:13px; color:var(--ink-dim);}
+.rate-input-wrap{display:flex; align-items:center; gap:6px;}
+.rate-input-wrap input{
+  width:64px; padding:6px 8px; text-align:center;
+  background:transparent; color:var(--gold); font-weight:700;
+  border:1px solid var(--gold); border-radius:6px;
+  font-family:inherit; font-size:14px;
+}
+.rate-input-wrap input:focus{outline:2px solid var(--gold); outline-offset:1px;}
+.rate-input-wrap span{color:var(--ink-dim); font-size:14px;}
+.add-btn{
+  margin-top:12px;
+  width:38px; height:38px;
+  border-radius:50%;
+  border:1px solid var(--gold);
+  background:transparent; color:var(--gold);
+  font-size:20px; line-height:1;
+  cursor:pointer;
+  display:flex; align-items:center; justify-content:center;
+  transition:background .15s ease, color .15s ease;
+}
+.add-btn:hover{background:var(--gold); color:var(--bg-panel);}
+.add-btn:focus-visible{outline:2px solid var(--gold); outline-offset:2px;}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>جدول محاسبه تنزیل چک</h1>
+  <p class="sub">فقط «مبلغ»، «تاریخ سررسید» و «تاریخ دریافت» را برای هر ردیف وارد کنید؛ بقیه ستون‌ها خودکار محاسبه می‌شوند. تاریخ‌ها بر اساس تقویم شمسی هستند.</p>
+
+  <div class="rate-box">
+    <label for="rateInput">درصد محاسبه مبلغ دریافت یک‌ماهه</label>
+    <div class="rate-input-wrap">
+      <input type="text" inputmode="decimal" id="rateInput" value="10">
+      <span>٪</span>
+    </div>
+  </div>
+
+  <div class="card">
+    <table>
+      <thead>
+        <tr>
+          <th>ردیف</th>
+          <th>مبلغ (عدد)</th>
+          <th>تاریخ سررسید چک</th>
+          <th>تاریخ دریافت چک</th>
+          <th>تعداد روزها</th>
+          <th>مبلغ دریافت یک ماهه<br>(<span id="rateLabel">۱۰</span>٪ مبلغ)</th>
+          <th>مبلغ خالص پرداختی</th>
+        </tr>
+      </thead>
+      <tbody id="tbody"></tbody>
+    </table>
+  </div>
+  <button id="addRowBtn" class="add-btn" type="button" aria-label="افزودن سطر">+</button>
+
+  <div class="summary">
+    <div class="sumbox">
+      <div class="label">جمع کل ستون مبلغ</div>
+      <div class="value" id="sumCol1">۰</div>
+    </div>
+    <div class="sumbox">
+      <div class="label">جمع کل مبلغ خالص پرداختی</div>
+      <div class="value" id="sumCol6">۰</div>
+    </div>
+    <div class="sumbox final">
+      <div class="label">نتیجه نهایی (جمع مبلغ − جمع خالص پرداختی)</div>
+      <div class="value" id="sumFinal">۰</div>
+    </div>
+  </div>
+
+  <p class="hint">تعداد روز از تفاضل تاریخ سررسید و تاریخ دریافت (به شمسی) محاسبه می‌شود. اگر تاریخ سررسید زودتر از تاریخ دریافت باشد، عدد منفی نمایش داده می‌شود.</p>
+</div>
+
+<script>
+/* ---- Jalali calendar helpers (public-domain algorithm) ---- */
+function div(a,b){return ~~(a/b);}
+function mod(a,b){return a-~~(a/b)*b;}
+function jalCal(jy){
+  var breaks=[-61,9,38,199,426,686,756,818,1111,1181,1210,1635,2060,2097,2192,2262,2324,2394,2456,3178];
+  var bl=breaks.length, gy=jy+621, leapJ=-14, jp=breaks[0], jm,jump,leap,n,i;
+  for(i=1;i<bl;i++){
+    jm=breaks[i]; jump=jm-jp;
+    if(jy<jm) break;
+    leapJ=leapJ+div(jump,33)*8+div(mod(jump,33),4);
+    jp=jm;
+  }
+  n=jy-jp;
+  leapJ=leapJ+div(n,33)*8+div(mod(n,33)+3,4);
+  if(mod(jump,33)===4 && jump-n===4) leapJ+=1;
+  var leapG=div(gy,4)-div((div(gy,100)+1)*3,4)-150;
+  var march=20+leapJ-leapG;
+  if(jump-n<6) n=n-jump+div(jump+4,33)*33;
+  leap=mod(mod(n+1,33)-1,4);
+  if(leap===-1) leap=4;
+  return {leap:leap, gy:gy, march:march};
+}
+function g2d(gy,gm,gd){
+  var d=div((gy+div(gm-8,6)+100100)*1461,4)+div(153*mod(gm+9,12)+2,5)+gd-34840408;
+  d=d-div(div(gy+100100+div(gm-8,6),100)*3,4)+752;
+  return d;
+}
+function isLeapJalali(jy){return jalCal(jy).leap===0;}
+function j2d(jy,jm,jd){
+  var r=jalCal(jy);
+  return g2d(r.gy,3,r.march)+(jm-1)*31-div(jm,7)*(jm-7)+jd-1;
+}
+function daysInJalaliMonth(jy,jm){
+  if(jm<=6) return 31;
+  if(jm<=11) return 30;
+  return isLeapJalali(jy)?30:29;
+}
+
+var MONTHS=["فروردین","اردیبهشت","خرداد","تیر","مرداد","شهریور","مهر","آبان","آذر","دی","بهمن","اسفند"];
+var CUR_JY=1404; // reference year for building select ranges
+
+function fmt(n){
+  if(!isFinite(n)) n=0;
+  return Math.round(n).toLocaleString('en-US');
+}
+function toEnDigits(s){
+  return s.replace(/[۰-۹]/g,function(d){return String("۰۱۲۳۴۵۶۷۸۹".indexOf(d));})
+           .replace(/[٠-٩]/g,function(d){return String("٠١٢٣٤٥٦٧٨٩".indexOf(d));});
+}
+function parseAmount(str){
+  var n=parseFloat(toEnDigits(str).replace(/,/g,''));
+  return isFinite(n)?n:0;
+}
+function formatAmountInput(el){
+  var raw=toEnDigits(el.value).replace(/,/g,'').replace(/[^\d.]/g,'');
+  var caretFromEnd=el.value.length-el.selectionStart;
+  if(raw===''){ el.value=''; return; }
+  var parts=raw.split('.');
+  parts[0]=parts[0].replace(/^0+(?=\d)/,'');
+  parts[0]=parts[0].replace(/\B(?=(\d{3})+(?!\d))/g,',');
+  el.value=parts.length>1?parts[0]+'.'+parts[1]:parts[0];
+  var pos=Math.max(0,el.value.length-caretFromEnd);
+  el.setSelectionRange(pos,pos);
+}
+
+function buildDateGroup(prefix,row){
+  var wrap=document.createElement('div');
+  wrap.className='date-group';
+
+  var day=document.createElement('select');
+  day.id=prefix+'d'+row;
+  var month=document.createElement('select');
+  month.id=prefix+'m'+row;
+  var year=document.createElement('select');
+  year.id=prefix+'y'+row;
+
+  for(var y=CUR_JY-5;y<=CUR_JY+5;y++){
+    var o=document.createElement('option'); o.value=y; o.textContent=y;
+    if(y===CUR_JY) o.selected=true;
+    year.appendChild(o);
+  }
+  for(var m=1;m<=12;m++){
+    var om=document.createElement('option'); om.value=m; om.textContent=MONTHS[m-1];
+    month.appendChild(om);
+  }
+  function fillDays(){
+    var jy=parseInt(year.value,10), jm=parseInt(month.value,10);
+    var count=daysInJalaliMonth(jy,jm);
+    var prevVal=day.value;
+    day.innerHTML='';
+    for(var d=1;d<=count;d++){
+      var od=document.createElement('option'); od.value=d; od.textContent=d;
+      day.appendChild(od);
+    }
+    if(prevVal && parseInt(prevVal,10)<=count) day.value=prevVal;
+  }
+  fillDays();
+  month.addEventListener('change',function(){fillDays(); calcRow(row);});
+  year.addEventListener('change',function(){fillDays(); calcRow(row);});
+  day.addEventListener('change',function(){calcRow(row);});
+
+  wrap.appendChild(year); wrap.appendChild(month); wrap.appendChild(day);
+  return wrap;
+}
+
+var RATE_PERCENT=10;
+
+function calcRow(i){
+  var amountEl=document.getElementById('amt'+i);
+  var amount=parseAmount(amountEl.value);
+
+  var dueY=parseInt(document.getElementById('duey'+i).value,10);
+  var dueM=parseInt(document.getElementById('duem'+i).value,10);
+  var dueD=parseInt(document.getElementById('dued'+i).value,10);
+  var recY=parseInt(document.getElementById('recy'+i).value,10);
+  var recM=parseInt(document.getElementById('recm'+i).value,10);
+  var recD=parseInt(document.getElementById('recd'+i).value,10);
+
+  var days=j2d(dueY,dueM,dueD)-j2d(recY,recM,recD);
+
+  var monthly=amount*(RATE_PERCENT/100);
+  var net=days!==0 ? (monthly/30*days) : 0;
+
+  document.getElementById('days'+i).textContent=days.toLocaleString('fa-IR');
+  document.getElementById('monthly'+i).textContent=fmt(monthly);
+  document.getElementById('net'+i).textContent=fmt(net);
+
+  updateSummary();
+}
+
+function updateSummary(){
+  var sum1=0,sum6=0;
+  activeRows.forEach(function(i){
+    sum1+=parseAmount(document.getElementById('amt'+i).value);
+    sum6+=parseAmount(document.getElementById('net'+i).textContent);
+  });
+  document.getElementById('sumCol1').textContent=fmt(sum1);
+  document.getElementById('sumCol6').textContent=fmt(sum6);
+  document.getElementById('sumFinal').textContent=fmt(sum1-sum6);
+}
+
+var tbody=document.getElementById('tbody');
+var rowCounter=0;
+var activeRows=[];
+
+function addRow(){
+  rowCounter++;
+  var row=rowCounter;
+  activeRows.push(row);
+
+  var tr=document.createElement('tr');
+
+  var tdNum=document.createElement('td'); tdNum.className='rownum'; tdNum.textContent=activeRows.length;
+  var tdAmt=document.createElement('td');
+  var amtInput=document.createElement('input');
+  amtInput.type='text'; amtInput.inputMode='decimal'; amtInput.className='amt-input';
+  amtInput.id='amt'+row; amtInput.placeholder='۰';
+  amtInput.addEventListener('input',function(){formatAmountInput(amtInput); calcRow(row);});
+  tdAmt.appendChild(amtInput);
+
+  var tdDue=document.createElement('td');
+  tdDue.appendChild(buildDateGroup('due',row));
+  var tdRec=document.createElement('td');
+  tdRec.appendChild(buildDateGroup('rec',row));
+
+  var tdDays=document.createElement('td'); tdDays.id='days'+row; tdDays.className='readout'; tdDays.textContent='۰';
+  var tdMonthly=document.createElement('td'); tdMonthly.id='monthly'+row; tdMonthly.className='readout small'; tdMonthly.textContent='۰';
+  var tdNet=document.createElement('td'); tdNet.id='net'+row; tdNet.className='readout'; tdNet.textContent='۰';
+
+  tr.appendChild(tdNum); tr.appendChild(tdAmt); tr.appendChild(tdDue); tr.appendChild(tdRec);
+  tr.appendChild(tdDays); tr.appendChild(tdMonthly); tr.appendChild(tdNet);
+  tbody.appendChild(tr);
+
+  calcRow(row);
+}
+
+document.getElementById('addRowBtn').addEventListener('click',addRow);
+
+var rateInput=document.getElementById('rateInput');
+rateInput.addEventListener('input',function(){
+  var v=parseFloat(toEnDigits(rateInput.value).replace(/,/g,''));
+  RATE_PERCENT=isFinite(v)?v:0;
+  document.getElementById('rateLabel').textContent=RATE_PERCENT.toLocaleString('fa-IR');
+  activeRows.forEach(calcRow);
+});
+
+addRow();
+addRow();
+
+</script>
+</body>
+</html>
